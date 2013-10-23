@@ -110,8 +110,7 @@ define puppi::netinstall (
   if $preextract_command {
     exec { "PreExtract ${source_filename} in ${destination_dir}":
       command     => $preextract_command,
-      before      => Exec["Extract ${source_filename} from ${work_dir}"],
-      subscribe   => Exec["Retrieve ${url}"],
+      subscribe   => Exec["Retrieve ${url} in ${work_dir}"],
       refreshonly => true,
       path        => $path,
       environment => $exec_env,
