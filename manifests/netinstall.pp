@@ -73,6 +73,7 @@ define puppi::netinstall (
   $extract_command     = '',
   $preextract_command  = '',
   $postextract_command = '',
+  $postextract_cwd     = '',
   $exec_env            = []
   ) {
 
@@ -105,6 +106,11 @@ define puppi::netinstall (
       default                    => $source_dirname,
     },
     default => $extracted_dir,
+  }
+
+  $real_postextract_cwd = $postextract_cwd ? {
+    ''      => "${destination_dir}/${real_extracted_dir}",
+    default => $postextract_cwd,
   }
 
   if $preextract_command {
@@ -150,11 +156,11 @@ define puppi::netinstall (
   if $postextract_command {
     exec { "PostExtract ${source_filename} in ${destination_dir}":
       command     => $postextract_command,
-      cwd         => "${destination_dir}/${real_extracted_dir}",
+      cwd         => $real_postextract_cwd,
       subscribe   => Exec["Extract ${source_filename} from ${work_dir}"],
       refreshonly => true,
       timeout     => $timeout,
-      require     => Exec["Retrieve ${url} in ${work_dir}"],
+      require     => [Exec["Retrieve ${url} in ${work_dir}"],Exec["Chown ${source_filename} in ${destination_dir}"]],
       path        => $path,
       environment => $exec_env,
     }
